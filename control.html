@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ควบคุม ESP32</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .controller-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; width: 350px; }
+        input[type="text"] { width: 90%; padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; text-align: center; }
+        button { padding: 12px 24px; font-size: 18px; margin: 10px; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; transition: 0.3s; }
+        .btn-on { background-color: #28a745; color: white; }
+        .btn-on:hover { background-color: #218838; }
+        .btn-off { background-color: #dc3545; color: white; }
+        .btn-off:hover { background-color: #c82333; }
+        #status { margin-top: 20px; font-size: 14px; color: #555; }
+    </style>
+</head>
+<body>
+
+    <div class="controller-box">
+        <h2>แผงควบคุม ESP32</h2>
+        
+        <input type="text" id="ipAddress" placeholder="ใส่ IP ของ ESP32 (เช่น 192.168.1.100)">
+        
+        <div>
+            <button class="btn-on" onclick="sendCommand('on')">เปิด (ON)</button>
+            <button class="btn-off" onclick="sendCommand('off')">ปิด (OFF)</button>
+        </div>
+
+        <p id="status">สถานะ: รอการสั่งงาน...</p>
+    </div>
+
+    <script>
+        function sendCommand(state) {
+            const ip = document.getElementById('ipAddress').value.trim();
+            const statusText = document.getElementById('status');
+
+            if (ip === "") {
+                alert('กรุณาระบุ IP Address ของ ESP32 ก่อนครับ');
+                return;
+            }
+
+            // สร้าง URL คำสั่ง เช่น http://192.168.1.100/on
+            const url = `http://${ip}/${state}`;
+            statusText.innerText = `กำลังส่งคำสั่งไปที่ ${ip}...`;
+
+            // ส่ง HTTP GET Request ไปยัง ESP32
+            fetch(url)
+                .then(response => {
+                    if (response.ok) {
+                        statusText.innerText = `✅ สำเร็จ: สั่ง ${state.toUpperCase()} เรียบร้อยแล้ว!`;
+                        statusText.style.color = "green";
+                    } else {
+                        statusText.innerText = `❌ ข้อผิดพลาด: ESP32 ตอบสนองผิดปกติ`;
+                        statusText.style.color = "red";
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    statusText.innerText = `❌ เชื่อมต่อไม่ได้: ตรวจสอบ IP หรือเช็คว่าคอมฯ กับ ESP32 อยู่ Wi-Fi วงเดียวกันหรือไม่`;
+                    statusText.style.color = "red";
+                });
+        }
+    </script>
+</body>
+</html>
